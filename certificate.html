@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Participation Certificate</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins&family=Noto+Sans+Devanagari&family=Great+Vibes&display=swap" rel="stylesheet">
 
@@ -45,8 +49,8 @@ cursor:pointer;
 
 /* CERTIFICATE */
 .certificate{
-width:800px;
-height:1100px;
+width:794px;
+height:1123px;
 margin:20px auto;
 padding:40px;
 background:linear-gradient(135deg,#fff,#e0f2fe);
@@ -236,9 +240,9 @@ This is to certify that
 
 <div class="student-name">${student["Student Name (English)"]}</div>
 
-S/O / D/O <b>${student["Father's Name"]}</b><br>
+Proud S/O/D/O  <b>${student["Father's Name"]}</b><br>
 
-Class: <b>${student["Class"]}</b>, from School: <b>${student["School Name"]}</b><br><br>
+Class : <b>${student["Class"]}</b>, from School : <b>${student["School Name"]}</b><br><br>
 
 has successfully participated in the<br>
 <b>Excellence Award Examination</b><br>
@@ -278,11 +282,53 @@ Prof. Tauqeer Akhtar
 </div>
 
 </div>
-
-<button onclick="window.print()">🖨️ Print Certificate</button>
+<button onclick="downloadPDF()">📥 Download PDF</button>
 `;
 
 document.querySelector(".certificate").style.display="block";
+
+}
+
+async function downloadPDF(){
+
+try{
+
+const { jsPDF } = window.jspdf;
+
+let element = document.getElementById("certificate");
+
+let canvas = await html2canvas(element, {
+scale:3,
+useCORS:true
+});
+
+let imgData = canvas.toDataURL("image/png");
+
+let pdf = new jsPDF("p","mm","a4");
+
+// margin
+let margin = 10;
+let pdfWidth = 210;
+let usableWidth = pdfWidth - (margin*2);
+
+let imgWidth = 210 - (margin*2);
+let imgHeight = 297 - (margin*2);
+
+if(imgHeight > 277){
+imgHeight = 277;
+}
+
+// 🔥 ADD IMAGE
+pdf.addImage(imgData, "PNG", margin, margin, imgWidth, imgHeight);
+
+// 🔥 FILE NAME (ROLL NO)
+let roll = document.getElementById("roll").value;
+pdf.save("Certificate_"+roll+".pdf");
+
+}catch(e){
+console.log(e);
+alert("PDF error aa raha hai");
+}
 
 }
 
