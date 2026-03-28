@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fountain Academy Result</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins&family=Noto+Sans+Devanagari&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+
+body{
+font-family:'Poppins','Noto Sans Devanagari','Segoe UI Emoji',sans-serif;
+background:linear-gradient(135deg,#0f172a,#1e293b);
+margin:0;
+}
+
+.header2{
+background:#000;
+color:#fff;
+padding:12px;
+text-align:center;
+}
+
+.header2 h2{
+margin:0;
+color:#facc15;
+}
+
+.login-box{
+background:#fff;
+max-width:350px;
+margin:20px auto;
+padding:20px;
+border-radius:12px;
+box-shadow:0 5px 20px rgba(0,0,0,0.3);
+text-align:center;
+}
+
+input{
+width:90%;
+padding:12px;
+margin:5% 0;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+button{
+width:100%;
+padding:12px;
+margin-top:10px;
+background:#16a34a;
+color:#fff;
+border:none;
+border-radius:6px;
+font-weight:bold;
+cursor:pointer;
+}
+
+#marksheet{
+background:#fff;
+padding:20px;
+margin:20px auto;
+border-radius:10px;
+max-width:800px;
+box-shadow:0 5px 20px rgba(0,0,0,0.2);
+}
+
+.m-header{
+text-align:center;
+border-bottom:2px solid #000;
+}
+
+.table{
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
+}
+
+.table td,.table th{
+border:1px solid #ccc;
+padding:8px;
+text-align:center;
+}
+
+.highlight{
+background:linear-gradient(135deg,#facc15,#f59e0b);
+padding:15px;
+margin-top:15px;
+border-radius:10px;
+font-weight:bold;
+color:#000;
+}
+
+.share-btn{
+background:#25D366;
+}
+
+.info-table td{
+text-align:left;
+padding:6px;
+}
+
+.result-box{
+background:#f8fafc;
+padding:20px;
+margin-top:20px;
+border-radius:12px;
+box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+
+.admission-box{
+background: linear-gradient(90deg, #facc15, #f59e0b);
+color:#fff;
+padding:15px;
+margin-top:15px;
+border-radius:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header class="header">
+    <img src="assets/images/logo.png" class="logo">
+    <div class="header-right">
+        <div class="toggle">
+            <a href="index.html" target="_blank" class="active">Academy</a>
+            <a href="#">IT</a>
+        </div>
+        <a href="exam.html" target="_blank" class="login-btn">
+        🏆 Excellence Award Exam
+        </a>
+    </div>
+</header>
+
+
+<div class="login-box">
+
+    <h3>🏆 Excellence Award Exam–2026</h3>
+
+<h4>🔐 Check Your Result</h4>
+<input id="roll" placeholder="Enter Roll No">
+<input id="name" placeholder="Enter Name">
+<button onclick="getResult()">View Result</button>
+</div>
+
+<div id="resultBox"></div>
+
+<script>
+
+let studentData = null;
+
+let file="result.xlsx";
+
+// number to words
+function numToWords(num){
+let ones=["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
+"Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
+let tens=["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+
+if(num<20) return ones[num];
+if(num<100) return tens[Math.floor(num/10)]+" "+ones[num%10];
+return num;
+}
+
+async function getResult(){
+
+let roll=document.getElementById("roll").value.toUpperCase().trim();
+let name=document.getElementById("name").value.toUpperCase().trim();
+
+let res=await fetch(file);
+let arrayBuffer=await res.arrayBuffer();
+let workbook=XLSX.read(arrayBuffer,{type:"array"});
+
+let student=null;
+
+
+workbook.SheetNames.forEach(sheet=>{
+let data=XLSX.utils.sheet_to_json(workbook.Sheets[sheet]);
+data.forEach(row=>{
+if((row["Roll No."]||"").toUpperCase()==roll &&
+(row["Student Name (English)"]||"").toUpperCase()==name){
+student=row;
+studentData=row;
+
+}
+});
+});
+
+if(!student){
+document.getElementById("resultBox").innerHTML="<h3 style='color:red'>❌ Result Not Found</h3>";
+return;
+}
+
+// SUBJECT
+let subjects=[];
+
+if(student.Class=="11th"){
+subjects=[
+["Physics","Physics"],
+["Chemistry","Chemistry"],
+["Hindi","Hindi"],
+["English","English"],
+["Logical Reasoning","Logical Reasoning"]
+];
+}else{
+subjects=[
+["Science","Science"],
+["Math","Math"],
+["Social Science","Social Science"],
+["Hindi","Hindi Marks"],
+["English","English Marks"]
+];
+}
+
+
+// CALC
+
+let total=0;
+let rows="";
+
+subjects.forEach(s=>{
+let m=Number(student[s[1]]||0);
+total+=m;
+let per=((m/20)*100).toFixed(1);
+rows+=`<tr><td>${s[0]}</td><td>${m}</td><td>${per}%</td></tr>`;
+});
+
+let percent=total;
+
+
+
+// SCHOLARSHIP
+let scholarship=0;
+
+if(percent<30) scholarship=0;
+else if(percent<40) scholarship=10;
+else if(percent<50) scholarship=20;
+else if(percent<60) scholarship=30;
+else if(percent<70) scholarship=40;
+else if(percent<80) scholarship=50;
+else scholarship=90;
+
+// FEE
+let actualFee=300;
+if(student.Class=="9th") actualFee=400;
+if(student.Class=="10th") actualFee=500;
+if(student.Class=="11th") actualFee=800;
+if(student.Class=="12th") actualFee=1000;
+
+let finalFee=Math.round(actualFee-(actualFee*scholarship/100));
+let scholarshipTableFull = `
+<h3 style="text-align:center;margin-top:15px;">🎯 छात्रवृत्ति योजना</h3>
+
+<table class="table">
+<tr>
+<th>0–30%</th>
+<th>30–40%</th>
+<th>40–50%</th>
+<th>50–60%</th>
+<th>60–70%</th>
+<th>70–80%</th>
+<th>80%+</th>
+</tr>
+
+<tr>
+<td>0%</td>
+<td>10%</td>
+<td>20%</td>
+<td>30%</td>
+<td>40%</td>
+<td>50%</td>
+<td>90%</td>
+</tr>
+</table>
+`;
+
+let finalMessage = `
+<div class="result-box">
+<center>
+<h3>🎉 आपके परिणाम का विश्लेषण</h3>
+
+<p>
+आपने <b>${percent}%</b> अंक प्राप्त किए हैं।
+आपको <b>${scholarship}% छात्रवृत्ति</b> मिली है।
+</p>
+</center>
+
+</div>
+`;
+let finalMessage1 = `
+<div class="result-box">
+
+<div class="admission-box">
+<h3>🚀 Admission Open (Session 2026–27)</h3>
+
+<p>
+📢 1 अप्रैल से नई कक्षाएं प्रारंभ हो रही हैं।<br><br>
+
+🎯 <b>Fountain Academy में क्यों पढ़ें?</b><br><br>
+
+✔ Subject-wise Expert Teachers (हर विषय के अलग विशेषज्ञ शिक्षक)<br>
+✔ प्रतिदिन 4 नियमित कक्षाएं (Structured Study System)<br>
+✔ Board + Competitive Exam Focused Preparation<br>
+✔ Monthly Test + Performance Analysis<br>
+✔ Individual Student Monitoring System<br><br>
+
+📢 <b>महत्वपूर्ण सूचना:</b><br><br>
+
+🌐 Website: 
+<a href="https://fountainacademy.co.in" target="_blank" style="color:blue;font-weight:bold;">
+fountainacademy.co.in
+</a><br><br>
+
+📞 Call:
+<a href="tel:9915964987" style="color:green;font-weight:bold;">
+9915964987
+</a><br><br>
+
+💬 WhatsApp:
+<a href="https://wa.me/919915964987" target="_blank" style="color:#25D366;font-weight:bold;">
+Click to Chat
+</a><br><br>
+
+⚠️ <b>पहले स्वयं आकर संस्थान को देखें, जानकारी प्राप्त करें, फिर ही Admission लें।</b><br><br>
+
+❌ किसी के बहकावे में न आएं — कई बार गलत जानकारी देकर आपको रोकने की कोशिश की जाती है।<br><br>
+
+🔥 <b>सही निर्णय सही समय पर लें — नहीं तो बाद में पछताना पड़ेगा जब समय निकल जाएगा।</b>
+</p>
+
+</div>
+`;
+
+
+// OUTPUT
+document.getElementById("resultBox").innerHTML=`
+
+<div id="marksheet">
+
+<div class="m-header">
+<img src="assets/images/award_logo.png"  width="100%">
+<h3>🎉 CONGRATULATIONS 🎉 Find Your Acheivement</h3>
+</div>
+
+<table class="table info-table">
+<tr><td><b>Name</b></td><td>${student["Student Name (English)"]}</td></tr>
+<tr><td><b>Father</b></td><td>${student["Father's Name"]}</td></tr>
+<tr><td><b>Roll No</b></td><td>${student["Roll No."]}</td></tr>
+<tr><td><b>Class</b></td><td>${student.Class}</td></tr>
+<tr><td><b>School</b></td><td>${student["School Name"]}</td></tr>
+</table>
+
+<table class="table">
+<tr><th>Subject</th><th>Marks</th><th>%</th></tr>
+${rows}
+<tr><th>Total</th><th>${total}</th><th>${percent}%</th></tr>
+<tr><th colspan="3">In Words: ${numToWords(percent)} Percent</th></tr>
+</table>
+
+<table class="table">
+<tr><th>आपके अंक</th><th>छात्रवृत्ति</th><th>वास्तविक शुल्क</th><th>देय शुल्क</th></tr>
+<tr>
+<td>${percent}%</td>
+<td>${scholarship}%</td>
+<td>₹${actualFee}</td>
+<td><b>₹${finalFee}/माह</b></td>
+</tr>
+</table>
+
+${scholarshipTableFull}
+${finalMessage}
+${finalMessage1}
+
+<button onclick="downloadPDF()">📥 Download PDF</button><br>
+<button class="share-btn" onclick="shareWhatsApp()">📤 Share WhatsApp</button>
+
+</div>
+`;
+}
+
+// DOWNLOAD
+async function downloadPDF() {
+
+try{
+
+const { jsPDF } = window.jspdf;
+
+let element = document.getElementById("marksheet");
+
+if(!element){
+alert("❌ Marksheet not found");
+return;
+}
+
+let canvas = await html2canvas(element, {
+scale: 2,
+useCORS: true
+});
+
+let imgData = canvas.toDataURL("image/png");
+
+let pdf = new jsPDF("p", "mm", "a4");
+let margin = 10;
+let imgWidth = 210;
+let imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+
+
+// ✅ filename fix
+let fileName = "Result.pdf";
+
+if(studentData){
+fileName = studentData["Student Name (English)"] + "_Result.pdf";
+}
+
+pdf.save(fileName);
+
+}catch(err){
+console.log(err);
+alert("PDF download error");
+}
+
+}
+
+// WHATSAPP
+function shareWhatsApp(){
+let text="🎉 Mera result aa gaya! Check karo 👉 "+window.location.href;
+window.open("https://wa.me/?text="+encodeURIComponent(text));
+}
+
+</script>
+
+</body>
+</html>

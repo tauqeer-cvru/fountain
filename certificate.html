@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Participation Certificate</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins&family=Noto+Sans+Devanagari&family=Great+Vibes&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<style>
+
+body{
+font-family:'Poppins','Noto Sans Devanagari',sans-serif;
+background:linear-gradient(135deg,#0f172a,#1e293b);
+text-align:center;
+margin:0;
+}
+
+/* SEARCH */
+.search-box{
+background:#fff;
+padding:20px;
+margin:20px auto;
+max-width:400px;
+border-radius:12px;
+box-shadow:0 5px 20px rgba(0,0,0,0.2);
+}
+
+input,button{
+padding:12px;
+width:90%;
+margin-top:10px;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+button{
+background:#16a34a;
+color:#fff;
+border:none;
+cursor:pointer;
+}
+
+/* CERTIFICATE */
+.certificate{
+width:800px;
+height:1100px;
+margin:20px auto;
+padding:40px;
+background:linear-gradient(135deg,#fff,#e0f2fe);
+border:15px double #0ea5e9;
+position:relative;
+display:none;
+box-shadow:0 0 30px rgba(0,0,0,0.3);
+}
+
+/* WATERMARK */
+.certificate::before{
+content:"";
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+
+/* 🔥 repeating watermark */
+background-image: repeating-linear-gradient(
+45deg,
+rgba(0,0,0,0.04) 0px,
+rgba(0,0,0,0.04) 1px,
+transparent 1px,
+transparent 80px
+);
+
+pointer-events:none;
+}
+
+.certificate::after{
+content:"Fountain Academy Puraina   Fountain Academy Puraina   Fountain Academy Puraina   Fountain Academy Puraina";
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+
+color:rgba(0,0,0,0.05);
+font-size:22px;
+white-space:pre-wrap;
+line-height:40px;
+text-align:center;
+
+pointer-events:none;
+}
+
+/* HEADER */
+.header img{
+}
+
+.header h2{
+margin:5px;
+color:#0f172a;
+}
+
+/* TITLE */
+.title{
+font-size:36px;
+font-weight:bold;
+color:#333;
+margin-top:10px;
+}
+
+/* NAME */
+.student-name{
+font-family:'Alex Brush', cursive;;
+font-size:44px;
+font-weight:bold;
+margin:20px 0;
+color:#0284e7;
+}
+
+/* CONTENT */
+.content{
+font-size:18px;
+line-height:1.8;
+}
+
+/* QR */
+.qr{
+margin-top:20px;
+}
+
+/* STAMP */
+.stamp{
+    position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0.8;
+  border-radius: 50%
+}
+
+.stamp img{
+height:120px;
+border-radius: 50%
+}
+
+/* FOOTER SIGN */
+.footer{
+position:absolute;
+bottom:40px;
+width:90%;
+left:5%;
+display:flex;
+justify-content:space-between;
+text-align:center;
+}
+
+.sign-line{
+border-top:2px solid #000;
+width:200px;
+margin:auto;
+margin-top:30px;
+}
+
+/* PRINT */
+@media print{
+body *{visibility:hidden;}
+.certificate,.certificate *{visibility:visible;}
+.certificate{
+position:absolute;
+left:0;
+top:0;
+width:100%;
+height:auto;
+border:none;
+}
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="search-box">
+<h3>🎓 Get Your Certificate</h3>
+<input id="roll" placeholder="Enter Roll No">
+<button onclick="getCertificate()">View Certificate</button>
+</div>
+
+<div id="certBox"></div>
+
+<script>
+
+let file="result.xlsx";
+
+async function getCertificate(){
+
+let roll=document.getElementById("roll").value.toUpperCase().trim();
+
+let res=await fetch(file);
+let data=await res.arrayBuffer();
+let workbook=XLSX.read(data,{type:"array"});
+
+let student=null;
+
+workbook.SheetNames.forEach(sheet=>{
+let rows=XLSX.utils.sheet_to_json(workbook.Sheets[sheet]);
+
+rows.forEach(r=>{
+if((r["Roll No."]||"").toUpperCase()==roll){
+student=r;
+}
+});
+});
+
+if(!student){
+alert("❌ Certificate Not Found");
+return;
+}
+
+document.getElementById("certBox").innerHTML=`
+
+<div class="certificate" id="certificate">
+
+<div class="header">
+<img src="assets/images/award_logo.png" width="100%"><br><br>
+<span>Organized By: Fountain Academy Puraina</span><br>
+</div>
+
+<div class="title">🏆 PARTICIPATION CERTIFICATE 🏆</div><br>
+
+<div class="content">
+
+This is to certify that
+
+<div class="student-name">${student["Student Name (English)"]}</div>
+
+S/O / D/O <b>${student["Father's Name"]}</b><br>
+
+Class: <b>${student["Class"]}</b>, from School: <b>${student["School Name"]}</b><br><br>
+
+has successfully participated in the<br>
+<b>Excellence Award Examination</b><br>
+held on <b>22 March 2026</b><br>
+
+<P>Fountain Academy Puraina की ओर से आपको हार्दिक बधाई!</p>
+<p style="font-size: 17px;">आप जैसे प्रतिभाशाली विद्यार्थियों को हमारा सलाम। हमारी कामना है कि आप जीवन में निरंतर आगे बढ़ते रहें।</P>
+
+</div>
+
+<div class="qr">
+<img src="assets/images/qrcode.png" height="130px" width="130px">
+<br>
+Verify at: <b>fountainacademy.co.in</b><br>
+Certificate No: <b>${student["Roll No."]}</b><br>
+Date: 22 March 2026
+</div>
+
+<div class="stamp" height="100px" width="100px">
+<img src="assets/images/stamp.png">
+</div>
+
+<div class="footer">
+
+<div>
+<div class="sign-line"></div>
+Principal<br>
+Deepak Singh
+</div>
+
+<div>
+<div class="sign-line"></div>
+Founder & Managing Director<br>
+Prof. Tauqeer Akhtar
+</div>
+
+</div>
+
+</div>
+
+<button onclick="window.print()">🖨️ Print Certificate</button>
+`;
+
+document.querySelector(".certificate").style.display="block";
+
+}
+
+</script>
+
+</body>
+</html>
